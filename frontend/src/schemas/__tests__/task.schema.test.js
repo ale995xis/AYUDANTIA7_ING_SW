@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { createTaskSchema } from '../task.schema';
+import {
+  createTaskSchema,
+  updateTaskSchema,
+} from '../task.schema';
 
 // Pruebas unitarias para validar las reglas del esquema Zod de tareas
 describe('Pruebas unitarias: createTaskSchema (Zod)', () => {
@@ -121,4 +124,70 @@ describe('Pruebas unitarias: createTaskSchema (Zod)', () => {
   //   const result = createTaskSchema.safeParse(invalidData);
   //   expect(result.success).toBe(true);
   // });
+});
+
+describe('Pruebas unitarias: updateTaskSchema (Zod)', () => {
+
+  it('debe aceptar datos validos', () => {
+    const data = {
+      title: 'Comprar alimento',
+      description: 'Comprar alimento para los animales',
+      completed: false,
+    };
+
+    const result = updateTaskSchema.safeParse(data);
+
+    expect(result.success).toBe(true);
+  });
+
+  it('debe aceptar campos opcionales omitidos', () => {
+    const data = {
+      title: 'Limpiar jaulas',
+    };
+
+    const result = updateTaskSchema.safeParse(data);
+
+    expect(result.success).toBe(true);
+  });
+
+  it('debe rechazar titulo con menos de 3 caracteres', () => {
+    const data = {
+      title: 'AB',
+    };
+
+    const result = updateTaskSchema.safeParse(data);
+
+    expect(result.success).toBe(false);
+
+    if (!result.success) {
+      const titleError = result.error.issues.find(
+        (issue) => issue.path.includes('title')
+      );
+
+      expect(titleError.message).toBe(
+        'El título debe tener al menos 3 caracteres'
+      );
+    }
+  });
+
+  it('debe rechazar titulo mayor a 150 caracteres', () => {
+    const data = {
+      title: 'A'.repeat(151),
+    };
+
+    const result = updateTaskSchema.safeParse(data);
+
+    expect(result.success).toBe(false);
+
+    if (!result.success) {
+      const titleError = result.error.issues.find(
+        (issue) => issue.path.includes('title')
+      );
+
+      expect(titleError.message).toBe(
+        'El título no puede superar los 150 caracteres'
+      );
+    }
+  });
+
 });
